@@ -541,4 +541,18 @@ final class ExpressionTests: XCTestCase {
       _ = ##""" foo # "# "##
       """###)
   }
+
+  func testMacroExpansionExpression() {
+    AssertParse(
+      #"#embed("filename.txt")"#
+    )
+
+    AssertParse(
+      """
+      #Test {
+        print("This is a test")
+      }
+      """
+    )
+  }
 }

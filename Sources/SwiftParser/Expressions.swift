@@ -435,7 +435,7 @@ extension Parser {
     inVarOrLet: Bool,
     periodHasKeyPathBehavior: Bool
   ) -> RawExprSyntax {
-    let head = self.parsePrimaryExpression(inVarOrLet: inVarOrLet)
+    let head = self.parsePrimaryExpression(flavor, inVarOrLet: inVarOrLet)
     guard !head.is(RawMissingExprSyntax.self) else {
       return head
     }
@@ -790,8 +790,12 @@ extension Parser {
   ///     primary-expression → key-path-expression
   ///     primary-expression → selector-expression
   ///     primary-expression → key-path-string-expression
+  ///     primary-expression → macro-expansion-expression
   @_spi(RawSyntax)
-  public mutating func parsePrimaryExpression(inVarOrLet: Bool) -> RawExprSyntax {
+  public mutating func parsePrimaryExpression(
+    _ flavor: ExprFlavor,
+    inVarOrLet: Bool
+  ) -> RawExprSyntax {
     switch self.at(anyIn: PrimaryExpressionStart.self) {
     case (.integerLiteral, let handle)?:
       let digits = self.eat(handle)
@@ -938,6 +942,9 @@ extension Parser {
          (.poundFileLiteralKeyword, _)?:
       return RawExprSyntax(self.parseObjectLiteralExpression())
 
+    case (.pound, _)?:
+      return RawExprSyntax(self.parseMacroExpansionExpr(flavor))
+
     case (.leftBrace, _)?:     // expr-closure
       return RawExprSyntax(self.parseClosureExpression())
     case (.period, let handle)?,              //=.foo
@@ -1021,6 +1028,61 @@ extension Parser {
       arguments: RawTupleExprElementListSyntax(elements: arguments, arena: self.arena),
       unexpectedBeforeRightParen,
       rightParen: rightParen,
+      arena: self.arena)
+  }
+}
+
+extension Parser {
+  /// Parse a macro expansion as an expression.
+  ///
+  ///
+  /// Grammar
+  /// =======
+  ///
+  /// macro-expansion-expression → '#' identifier expr-call-suffix?
+  @_spi(RawSyntax)
+  public mutating func parseMacroExpansionExpr(
+    _ flavor: ExprFlavor
+  ) -> RawMacroExpansionExprSyntax {
+    let poundKeyword = self.consumeAnyToken()
+    let (unexpectedBeforeMacro, macro) = self.expectIdentifier()
+
+    // Parse the optional parenthesized argument list.
+    let leftParen = self.consume(if: .leftParen, where: { !$0.isAtStartOfLine })
+    let args: [RawTupleExprElementSyntax]
+    let unexpectedBeforeRightParen: RawUnexpectedNodesSyntax?
+    let rightParen: RawTokenSyntax?
+    if leftParen != nil {
+      args = parseArgumentListElements()
+      (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
+    } else {
+      args = []
+      unexpectedBeforeRightParen = nil
+      rightParen = nil
+    }
+
+    // Parse the optional trailing closures.
+    let trailingClosure: RawClosureExprSyntax?
+    let additionalTrailingClosures: RawMultipleTrailingClosureElementListSyntax?
+    if case .trailingClosure = flavor, self.at(.leftBrace), self.lookahead().isValidTrailingClosure(flavor) {
+      (trailingClosure, additionalTrailingClosures) = self.parseTrailingClosures(flavor)
+    } else {
+      trailingClosure = nil
+      additionalTrailingClosures = nil
+    }
+
+    return RawMacroExpansionExprSyntax(
+      poundToken: poundKeyword,
+      unexpectedBeforeMacro,
+      macro: macro,
+      leftParen: leftParen,
+      argumentList: RawTupleExprElementListSyntax(
+        elements: args, arena: self.arena
+      ),
+      unexpectedBeforeRightParen,
+      rightParen: rightParen,
+      trailingClosure: trailingClosure,
+      additionalTrailingClosures: additionalTrailingClosures,
       arena: self.arena)
   }
 }
