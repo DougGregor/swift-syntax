@@ -644,6 +644,23 @@ func validateLayout(layout: RawSyntaxBuffer, as kind: SyntaxKind) {
     _verify(layout[10], as: RawUnexpectedNodesSyntax?.self)
     _verify(layout[11], as: RawTokenSyntax.self)
     break
+  case .macroExpansionExpr:
+    assert(layout.count == 14)
+    _verify(layout[0], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[1], as: RawTokenSyntax.self)
+    _verify(layout[2], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[3], as: RawTokenSyntax.self)
+    _verify(layout[4], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[5], as: RawTokenSyntax?.self)
+    _verify(layout[6], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[7], as: RawTupleExprElementListSyntax.self)
+    _verify(layout[8], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[9], as: RawTokenSyntax?.self)
+    _verify(layout[10], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[11], as: RawClosureExprSyntax?.self)
+    _verify(layout[12], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[13], as: RawMultipleTrailingClosureElementListSyntax?.self)
+    break
   case .postfixIfConfigExpr:
     assert(layout.count == 4)
     _verify(layout[0], as: RawUnexpectedNodesSyntax?.self)
@@ -1311,6 +1328,23 @@ func validateLayout(layout: RawSyntaxBuffer, as kind: SyntaxKind) {
     _verify(layout[3], as: RawTokenSyntax.self)
     _verify(layout[4], as: RawUnexpectedNodesSyntax?.self)
     _verify(layout[5], as: RawTokenSyntax.self)
+    break
+  case .macroExpansionDecl:
+    assert(layout.count == 14)
+    _verify(layout[0], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[1], as: RawTokenSyntax.self)
+    _verify(layout[2], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[3], as: RawTokenSyntax.self)
+    _verify(layout[4], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[5], as: RawTokenSyntax?.self)
+    _verify(layout[6], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[7], as: RawTupleExprElementListSyntax.self)
+    _verify(layout[8], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[9], as: RawTokenSyntax?.self)
+    _verify(layout[10], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[11], as: RawClosureExprSyntax?.self)
+    _verify(layout[12], as: RawUnexpectedNodesSyntax?.self)
+    _verify(layout[13], as: RawMultipleTrailingClosureElementListSyntax?.self)
     break
   case .tokenList:
     for element in layout {

@@ -5012,6 +5012,118 @@ public struct ObjcSelectorExpr: ExprBuildable, ExpressibleAsObjcSelectorExpr {
     return result
   }
 }
+public struct MacroExpansionExpr: ExprBuildable, ExpressibleAsMacroExpansionExpr {
+  /// The leading trivia attached to this syntax node once built.
+  var leadingTrivia: Trivia
+  /// The trailing trivia attached to this syntax node once built.
+  var trailingTrivia: Trivia
+  var unexpectedBeforePoundToken: UnexpectedNodes?
+  var poundToken: Token
+  var unexpectedBetweenPoundTokenAndMacro: UnexpectedNodes?
+  var macro: Token
+  var unexpectedBetweenMacroAndLeftParen: UnexpectedNodes?
+  var leftParen: Token?
+  var unexpectedBetweenLeftParenAndArgumentList: UnexpectedNodes?
+  var argumentList: TupleExprElementList
+  var unexpectedBetweenArgumentListAndRightParen: UnexpectedNodes?
+  var rightParen: Token?
+  var unexpectedBetweenRightParenAndTrailingClosure: UnexpectedNodes?
+  var trailingClosure: ClosureExpr?
+  var unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: UnexpectedNodes?
+  var additionalTrailingClosures: MultipleTrailingClosureElementList?
+  /// Creates a `MacroExpansionExpr` using the provided parameters.
+  /// - Parameters:
+  ///   - unexpectedBeforePoundToken: 
+  ///   - poundToken: The `#` sign.
+  ///   - unexpectedBetweenPoundTokenAndMacro: 
+  ///   - macro: 
+  ///   - unexpectedBetweenMacroAndLeftParen: 
+  ///   - leftParen: 
+  ///   - unexpectedBetweenLeftParenAndArgumentList: 
+  ///   - argumentList: 
+  ///   - unexpectedBetweenArgumentListAndRightParen: 
+  ///   - rightParen: 
+  ///   - unexpectedBetweenRightParenAndTrailingClosure: 
+  ///   - trailingClosure: 
+  ///   - unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: 
+  ///   - additionalTrailingClosures: 
+  public init (leadingTrivia: Trivia = [], trailingTrivia: Trivia = [], unexpectedBeforePoundToken: ExpressibleAsUnexpectedNodes? = nil, poundToken: Token = Token.`pound`, unexpectedBetweenPoundTokenAndMacro: ExpressibleAsUnexpectedNodes? = nil, macro: Token, unexpectedBetweenMacroAndLeftParen: ExpressibleAsUnexpectedNodes? = nil, leftParen: Token? = nil, unexpectedBetweenLeftParenAndArgumentList: ExpressibleAsUnexpectedNodes? = nil, argumentList: ExpressibleAsTupleExprElementList, unexpectedBetweenArgumentListAndRightParen: ExpressibleAsUnexpectedNodes? = nil, rightParen: Token? = nil, unexpectedBetweenRightParenAndTrailingClosure: ExpressibleAsUnexpectedNodes? = nil, trailingClosure: ExpressibleAsClosureExpr? = nil, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: ExpressibleAsUnexpectedNodes? = nil, additionalTrailingClosures: ExpressibleAsMultipleTrailingClosureElementList? = nil) {
+    self.leadingTrivia = leadingTrivia
+    self.trailingTrivia = trailingTrivia
+    self.unexpectedBeforePoundToken = unexpectedBeforePoundToken?.createUnexpectedNodes()
+    self.poundToken = poundToken
+    assert(poundToken.text == #"#"#)
+    self.unexpectedBetweenPoundTokenAndMacro = unexpectedBetweenPoundTokenAndMacro?.createUnexpectedNodes()
+    self.macro = macro
+    self.unexpectedBetweenMacroAndLeftParen = unexpectedBetweenMacroAndLeftParen?.createUnexpectedNodes()
+    self.leftParen = leftParen
+    assert(leftParen == nil || leftParen!.text == #"("#)
+    self.unexpectedBetweenLeftParenAndArgumentList = unexpectedBetweenLeftParenAndArgumentList?.createUnexpectedNodes()
+    self.argumentList = argumentList.createTupleExprElementList()
+    self.unexpectedBetweenArgumentListAndRightParen = unexpectedBetweenArgumentListAndRightParen?.createUnexpectedNodes()
+    self.rightParen = rightParen
+    assert(rightParen == nil || rightParen!.text == #")"#)
+    self.unexpectedBetweenRightParenAndTrailingClosure = unexpectedBetweenRightParenAndTrailingClosure?.createUnexpectedNodes()
+    self.trailingClosure = trailingClosure?.createClosureExpr()
+    self.unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures = unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures?.createUnexpectedNodes()
+    self.additionalTrailingClosures = additionalTrailingClosures?.createMultipleTrailingClosureElementList()
+  }
+  /// A convenience initializer that allows:
+  ///  - Initializing syntax collections using result builders
+  ///  - Initializing tokens without default text using strings
+  public init (leadingTrivia: Trivia = [], unexpectedBeforePoundToken: ExpressibleAsUnexpectedNodes? = nil, poundToken: Token = Token.`pound`, unexpectedBetweenPoundTokenAndMacro: ExpressibleAsUnexpectedNodes? = nil, macro: String, unexpectedBetweenMacroAndLeftParen: ExpressibleAsUnexpectedNodes? = nil, leftParen: Token? = nil, unexpectedBetweenLeftParenAndArgumentList: ExpressibleAsUnexpectedNodes? = nil, unexpectedBetweenArgumentListAndRightParen: ExpressibleAsUnexpectedNodes? = nil, rightParen: Token? = nil, unexpectedBetweenRightParenAndTrailingClosure: ExpressibleAsUnexpectedNodes? = nil, trailingClosure: ExpressibleAsClosureExpr? = nil, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: ExpressibleAsUnexpectedNodes? = nil, additionalTrailingClosures: ExpressibleAsMultipleTrailingClosureElementList? = nil, @TupleExprElementListBuilder argumentListBuilder: () -> ExpressibleAsTupleExprElementList =  {
+    TupleExprElementList([])
+  }) {
+    self.init(leadingTrivia: leadingTrivia, unexpectedBeforePoundToken: unexpectedBeforePoundToken, poundToken: poundToken, unexpectedBetweenPoundTokenAndMacro: unexpectedBetweenPoundTokenAndMacro, macro: Token.`identifier`(macro), unexpectedBetweenMacroAndLeftParen: unexpectedBetweenMacroAndLeftParen, leftParen: leftParen, unexpectedBetweenLeftParenAndArgumentList: unexpectedBetweenLeftParenAndArgumentList, argumentList: argumentListBuilder(), unexpectedBetweenArgumentListAndRightParen: unexpectedBetweenArgumentListAndRightParen, rightParen: rightParen, unexpectedBetweenRightParenAndTrailingClosure: unexpectedBetweenRightParenAndTrailingClosure, trailingClosure: trailingClosure, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures, additionalTrailingClosures: additionalTrailingClosures)
+  }
+  /// Builds a `MacroExpansionExprSyntax`.
+  /// - Parameter format: The `Format` to use.
+  /// - Parameter leadingTrivia: Additional leading trivia to attach, typically used for indentation.
+  /// - Returns: The built `MacroExpansionExprSyntax`.
+  func buildMacroExpansionExpr(format: Format) -> MacroExpansionExprSyntax {
+    var result = MacroExpansionExprSyntax(unexpectedBeforePoundToken?.buildUnexpectedNodes(format: format), poundToken: poundToken.buildToken(format: format), unexpectedBetweenPoundTokenAndMacro?.buildUnexpectedNodes(format: format), macro: macro.buildToken(format: format), unexpectedBetweenMacroAndLeftParen?.buildUnexpectedNodes(format: format), leftParen: leftParen?.buildToken(format: format), unexpectedBetweenLeftParenAndArgumentList?.buildUnexpectedNodes(format: format), argumentList: argumentList.buildTupleExprElementList(format: format), unexpectedBetweenArgumentListAndRightParen?.buildUnexpectedNodes(format: format), rightParen: rightParen?.buildToken(format: format), unexpectedBetweenRightParenAndTrailingClosure?.buildUnexpectedNodes(format: format), trailingClosure: trailingClosure?.buildClosureExpr(format: format), unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures?.buildUnexpectedNodes(format: format), additionalTrailingClosures: additionalTrailingClosures?.buildMultipleTrailingClosureElementList(format: format))
+    if !leadingTrivia.isEmpty {
+      result = result.withLeadingTrivia(leadingTrivia + (result.leadingTrivia ?? []))
+    }
+    if !trailingTrivia.isEmpty {
+      result = result.withTrailingTrivia(trailingTrivia + (result.trailingTrivia ?? []))
+    }
+    return format.format(syntax: result)
+  }
+  /// Conformance to `ExprBuildable`.
+  public func buildExpr(format: Format) -> ExprSyntax {
+    let result = buildMacroExpansionExpr(format: format)
+    return ExprSyntax(result)
+  }
+  /// Conformance to `ExpressibleAsMacroExpansionExpr`.
+  public func createMacroExpansionExpr() -> MacroExpansionExpr {
+    return self
+  }
+  /// Conformance to `ExpressibleAsExprBuildable`.
+  /// `MacroExpansionExpr` may conform to `ExpressibleAsExprBuildable` via different `ExpressibleAs*` paths.
+  /// Thus, there are multiple default implementations of `createExprBuildable`, some of which perform conversions
+  /// through `ExpressibleAs*` protocols. To resolve the ambiguity, provie a fixed implementation that doesn't perform any conversions.
+  public func createExprBuildable() -> ExprBuildable {
+    return self
+  }
+  /// Conformance to `ExpressibleAsSyntaxBuildable`.
+  /// `ExprBuildable` may conform to `ExpressibleAsSyntaxBuildable` via different `ExpressibleAs*` paths.
+  /// Thus, there are multiple default implementations of `createSyntaxBuildable`, some of which perform conversions
+  /// through `ExpressibleAs*` protocols. To resolve the ambiguity, provie a fixed implementation that doesn't perform any conversions.
+  public func createSyntaxBuildable() -> SyntaxBuildable {
+    return self
+  }
+  public func withLeadingTrivia(_ leadingTrivia: Trivia) -> Self {
+    var result = self
+    result.leadingTrivia = leadingTrivia
+    return result
+  }
+  public func withTrailingTrivia(_ trailingTrivia: Trivia) -> Self {
+    var result = self
+    result.trailingTrivia = trailingTrivia
+    return result
+  }
+}
 public struct PostfixIfConfigExpr: ExprBuildable, ExpressibleAsPostfixIfConfigExpr {
   /// The leading trivia attached to this syntax node once built.
   var leadingTrivia: Trivia
@@ -9586,6 +9698,118 @@ public struct PrecedenceGroupAssociativity: SyntaxBuildable, ExpressibleAsPreced
   }
   /// Conformance to `ExpressibleAsSyntaxBuildable`.
   /// `PrecedenceGroupAssociativity` may conform to `ExpressibleAsSyntaxBuildable` via different `ExpressibleAs*` paths.
+  /// Thus, there are multiple default implementations of `createSyntaxBuildable`, some of which perform conversions
+  /// through `ExpressibleAs*` protocols. To resolve the ambiguity, provie a fixed implementation that doesn't perform any conversions.
+  public func createSyntaxBuildable() -> SyntaxBuildable {
+    return self
+  }
+  public func withLeadingTrivia(_ leadingTrivia: Trivia) -> Self {
+    var result = self
+    result.leadingTrivia = leadingTrivia
+    return result
+  }
+  public func withTrailingTrivia(_ trailingTrivia: Trivia) -> Self {
+    var result = self
+    result.trailingTrivia = trailingTrivia
+    return result
+  }
+}
+public struct MacroExpansionDecl: DeclBuildable, ExpressibleAsMacroExpansionDecl {
+  /// The leading trivia attached to this syntax node once built.
+  var leadingTrivia: Trivia
+  /// The trailing trivia attached to this syntax node once built.
+  var trailingTrivia: Trivia
+  var unexpectedBeforePoundToken: UnexpectedNodes?
+  var poundToken: Token
+  var unexpectedBetweenPoundTokenAndMacro: UnexpectedNodes?
+  var macro: Token
+  var unexpectedBetweenMacroAndLeftParen: UnexpectedNodes?
+  var leftParen: Token?
+  var unexpectedBetweenLeftParenAndArgumentList: UnexpectedNodes?
+  var argumentList: TupleExprElementList
+  var unexpectedBetweenArgumentListAndRightParen: UnexpectedNodes?
+  var rightParen: Token?
+  var unexpectedBetweenRightParenAndTrailingClosure: UnexpectedNodes?
+  var trailingClosure: ClosureExpr?
+  var unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: UnexpectedNodes?
+  var additionalTrailingClosures: MultipleTrailingClosureElementList?
+  /// Creates a `MacroExpansionDecl` using the provided parameters.
+  /// - Parameters:
+  ///   - unexpectedBeforePoundToken: 
+  ///   - poundToken: The `#` sign.
+  ///   - unexpectedBetweenPoundTokenAndMacro: 
+  ///   - macro: 
+  ///   - unexpectedBetweenMacroAndLeftParen: 
+  ///   - leftParen: 
+  ///   - unexpectedBetweenLeftParenAndArgumentList: 
+  ///   - argumentList: 
+  ///   - unexpectedBetweenArgumentListAndRightParen: 
+  ///   - rightParen: 
+  ///   - unexpectedBetweenRightParenAndTrailingClosure: 
+  ///   - trailingClosure: 
+  ///   - unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: 
+  ///   - additionalTrailingClosures: 
+  public init (leadingTrivia: Trivia = [], trailingTrivia: Trivia = [], unexpectedBeforePoundToken: ExpressibleAsUnexpectedNodes? = nil, poundToken: Token = Token.`pound`, unexpectedBetweenPoundTokenAndMacro: ExpressibleAsUnexpectedNodes? = nil, macro: Token, unexpectedBetweenMacroAndLeftParen: ExpressibleAsUnexpectedNodes? = nil, leftParen: Token? = nil, unexpectedBetweenLeftParenAndArgumentList: ExpressibleAsUnexpectedNodes? = nil, argumentList: ExpressibleAsTupleExprElementList, unexpectedBetweenArgumentListAndRightParen: ExpressibleAsUnexpectedNodes? = nil, rightParen: Token? = nil, unexpectedBetweenRightParenAndTrailingClosure: ExpressibleAsUnexpectedNodes? = nil, trailingClosure: ExpressibleAsClosureExpr? = nil, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: ExpressibleAsUnexpectedNodes? = nil, additionalTrailingClosures: ExpressibleAsMultipleTrailingClosureElementList? = nil) {
+    self.leadingTrivia = leadingTrivia
+    self.trailingTrivia = trailingTrivia
+    self.unexpectedBeforePoundToken = unexpectedBeforePoundToken?.createUnexpectedNodes()
+    self.poundToken = poundToken
+    assert(poundToken.text == #"#"#)
+    self.unexpectedBetweenPoundTokenAndMacro = unexpectedBetweenPoundTokenAndMacro?.createUnexpectedNodes()
+    self.macro = macro
+    self.unexpectedBetweenMacroAndLeftParen = unexpectedBetweenMacroAndLeftParen?.createUnexpectedNodes()
+    self.leftParen = leftParen
+    assert(leftParen == nil || leftParen!.text == #"("#)
+    self.unexpectedBetweenLeftParenAndArgumentList = unexpectedBetweenLeftParenAndArgumentList?.createUnexpectedNodes()
+    self.argumentList = argumentList.createTupleExprElementList()
+    self.unexpectedBetweenArgumentListAndRightParen = unexpectedBetweenArgumentListAndRightParen?.createUnexpectedNodes()
+    self.rightParen = rightParen
+    assert(rightParen == nil || rightParen!.text == #")"#)
+    self.unexpectedBetweenRightParenAndTrailingClosure = unexpectedBetweenRightParenAndTrailingClosure?.createUnexpectedNodes()
+    self.trailingClosure = trailingClosure?.createClosureExpr()
+    self.unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures = unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures?.createUnexpectedNodes()
+    self.additionalTrailingClosures = additionalTrailingClosures?.createMultipleTrailingClosureElementList()
+  }
+  /// A convenience initializer that allows:
+  ///  - Initializing syntax collections using result builders
+  ///  - Initializing tokens without default text using strings
+  public init (leadingTrivia: Trivia = [], unexpectedBeforePoundToken: ExpressibleAsUnexpectedNodes? = nil, poundToken: Token = Token.`pound`, unexpectedBetweenPoundTokenAndMacro: ExpressibleAsUnexpectedNodes? = nil, macro: String, unexpectedBetweenMacroAndLeftParen: ExpressibleAsUnexpectedNodes? = nil, leftParen: Token? = nil, unexpectedBetweenLeftParenAndArgumentList: ExpressibleAsUnexpectedNodes? = nil, unexpectedBetweenArgumentListAndRightParen: ExpressibleAsUnexpectedNodes? = nil, rightParen: Token? = nil, unexpectedBetweenRightParenAndTrailingClosure: ExpressibleAsUnexpectedNodes? = nil, trailingClosure: ExpressibleAsClosureExpr? = nil, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: ExpressibleAsUnexpectedNodes? = nil, additionalTrailingClosures: ExpressibleAsMultipleTrailingClosureElementList? = nil, @TupleExprElementListBuilder argumentListBuilder: () -> ExpressibleAsTupleExprElementList =  {
+    TupleExprElementList([])
+  }) {
+    self.init(leadingTrivia: leadingTrivia, unexpectedBeforePoundToken: unexpectedBeforePoundToken, poundToken: poundToken, unexpectedBetweenPoundTokenAndMacro: unexpectedBetweenPoundTokenAndMacro, macro: Token.`identifier`(macro), unexpectedBetweenMacroAndLeftParen: unexpectedBetweenMacroAndLeftParen, leftParen: leftParen, unexpectedBetweenLeftParenAndArgumentList: unexpectedBetweenLeftParenAndArgumentList, argumentList: argumentListBuilder(), unexpectedBetweenArgumentListAndRightParen: unexpectedBetweenArgumentListAndRightParen, rightParen: rightParen, unexpectedBetweenRightParenAndTrailingClosure: unexpectedBetweenRightParenAndTrailingClosure, trailingClosure: trailingClosure, unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures: unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures, additionalTrailingClosures: additionalTrailingClosures)
+  }
+  /// Builds a `MacroExpansionDeclSyntax`.
+  /// - Parameter format: The `Format` to use.
+  /// - Parameter leadingTrivia: Additional leading trivia to attach, typically used for indentation.
+  /// - Returns: The built `MacroExpansionDeclSyntax`.
+  func buildMacroExpansionDecl(format: Format) -> MacroExpansionDeclSyntax {
+    var result = MacroExpansionDeclSyntax(unexpectedBeforePoundToken?.buildUnexpectedNodes(format: format), poundToken: poundToken.buildToken(format: format), unexpectedBetweenPoundTokenAndMacro?.buildUnexpectedNodes(format: format), macro: macro.buildToken(format: format), unexpectedBetweenMacroAndLeftParen?.buildUnexpectedNodes(format: format), leftParen: leftParen?.buildToken(format: format), unexpectedBetweenLeftParenAndArgumentList?.buildUnexpectedNodes(format: format), argumentList: argumentList.buildTupleExprElementList(format: format), unexpectedBetweenArgumentListAndRightParen?.buildUnexpectedNodes(format: format), rightParen: rightParen?.buildToken(format: format), unexpectedBetweenRightParenAndTrailingClosure?.buildUnexpectedNodes(format: format), trailingClosure: trailingClosure?.buildClosureExpr(format: format), unexpectedBetweenTrailingClosureAndAdditionalTrailingClosures?.buildUnexpectedNodes(format: format), additionalTrailingClosures: additionalTrailingClosures?.buildMultipleTrailingClosureElementList(format: format))
+    if !leadingTrivia.isEmpty {
+      result = result.withLeadingTrivia(leadingTrivia + (result.leadingTrivia ?? []))
+    }
+    if !trailingTrivia.isEmpty {
+      result = result.withTrailingTrivia(trailingTrivia + (result.trailingTrivia ?? []))
+    }
+    return format.format(syntax: result)
+  }
+  /// Conformance to `DeclBuildable`.
+  public func buildDecl(format: Format) -> DeclSyntax {
+    let result = buildMacroExpansionDecl(format: format)
+    return DeclSyntax(result)
+  }
+  /// Conformance to `ExpressibleAsMacroExpansionDecl`.
+  public func createMacroExpansionDecl() -> MacroExpansionDecl {
+    return self
+  }
+  /// Conformance to `ExpressibleAsDeclBuildable`.
+  /// `MacroExpansionDecl` may conform to `ExpressibleAsDeclBuildable` via different `ExpressibleAs*` paths.
+  /// Thus, there are multiple default implementations of `createDeclBuildable`, some of which perform conversions
+  /// through `ExpressibleAs*` protocols. To resolve the ambiguity, provie a fixed implementation that doesn't perform any conversions.
+  public func createDeclBuildable() -> DeclBuildable {
+    return self
+  }
+  /// Conformance to `ExpressibleAsSyntaxBuildable`.
+  /// `DeclBuildable` may conform to `ExpressibleAsSyntaxBuildable` via different `ExpressibleAs*` paths.
   /// Thus, there are multiple default implementations of `createSyntaxBuildable`, some of which perform conversions
   /// through `ExpressibleAs*` protocols. To resolve the ambiguity, provie a fixed implementation that doesn't perform any conversions.
   public func createSyntaxBuildable() -> SyntaxBuildable {

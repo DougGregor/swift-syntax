@@ -104,6 +104,7 @@ public enum SyntaxEnum {
   case objcName(ObjcNameSyntax)
   case objcKeyPathExpr(ObjcKeyPathExprSyntax)
   case objcSelectorExpr(ObjcSelectorExprSyntax)
+  case macroExpansionExpr(MacroExpansionExprSyntax)
   case postfixIfConfigExpr(PostfixIfConfigExprSyntax)
   case editorPlaceholderExpr(EditorPlaceholderExprSyntax)
   case objectLiteralExpr(ObjectLiteralExprSyntax)
@@ -168,6 +169,7 @@ public enum SyntaxEnum {
   case precedenceGroupNameElement(PrecedenceGroupNameElementSyntax)
   case precedenceGroupAssignment(PrecedenceGroupAssignmentSyntax)
   case precedenceGroupAssociativity(PrecedenceGroupAssociativitySyntax)
+  case macroExpansionDecl(MacroExpansionDeclSyntax)
   case tokenList(TokenListSyntax)
   case nonEmptyTokenList(NonEmptyTokenListSyntax)
   case customAttribute(CustomAttributeSyntax)
@@ -469,6 +471,8 @@ public enum SyntaxEnum {
       return "'#keyPath' expression"
     case .objcSelectorExpr:
       return "'#selector' expression"
+    case .macroExpansionExpr:
+      return "macro expansion expression"
     case .postfixIfConfigExpr:
       return nil
     case .editorPlaceholderExpr:
@@ -597,6 +601,8 @@ public enum SyntaxEnum {
       return "'assignment' property of precedencegroup"
     case .precedenceGroupAssociativity:
       return "'associativity' property of precedencegroup"
+    case .macroExpansionDecl:
+      return "macro expansion declaration"
     case .tokenList:
       return "token list"
     case .nonEmptyTokenList:
@@ -1021,6 +1027,8 @@ public extension Syntax {
       return .objcKeyPathExpr(ObjcKeyPathExprSyntax(self)!)
     case .objcSelectorExpr:
       return .objcSelectorExpr(ObjcSelectorExprSyntax(self)!)
+    case .macroExpansionExpr:
+      return .macroExpansionExpr(MacroExpansionExprSyntax(self)!)
     case .postfixIfConfigExpr:
       return .postfixIfConfigExpr(PostfixIfConfigExprSyntax(self)!)
     case .editorPlaceholderExpr:
@@ -1149,6 +1157,8 @@ public extension Syntax {
       return .precedenceGroupAssignment(PrecedenceGroupAssignmentSyntax(self)!)
     case .precedenceGroupAssociativity:
       return .precedenceGroupAssociativity(PrecedenceGroupAssociativitySyntax(self)!)
+    case .macroExpansionDecl:
+      return .macroExpansionDecl(MacroExpansionDeclSyntax(self)!)
     case .tokenList:
       return .tokenList(TokenListSyntax(self)!)
     case .nonEmptyTokenList:

@@ -105,6 +105,7 @@ public enum SyntaxKind {
   case objcName
   case objcKeyPathExpr
   case objcSelectorExpr
+  case macroExpansionExpr
   case postfixIfConfigExpr
   case editorPlaceholderExpr
   case objectLiteralExpr
@@ -169,6 +170,7 @@ public enum SyntaxKind {
   case precedenceGroupNameElement
   case precedenceGroupAssignment
   case precedenceGroupAssociativity
+  case macroExpansionDecl
   case tokenList
   case nonEmptyTokenList
   case customAttribute

@@ -593,6 +593,14 @@ extension Format {
     }
     return result
   }
+  func format(syntax: MacroExpansionExprSyntax) -> MacroExpansionExprSyntax {
+    var result = syntax
+    let leadingTrivia = result.leadingTrivia ?? []
+    if !leadingTrivia.isEmpty {
+      result = result.withLeadingTrivia(leadingTrivia.addingSpacingAfterNewlinesIfNeeded())
+    }
+    return result
+  }
   func format(syntax: PostfixIfConfigExprSyntax) -> PostfixIfConfigExprSyntax {
     var result = syntax
     let leadingTrivia = result.leadingTrivia ?? []
@@ -1040,6 +1048,14 @@ extension Format {
     return result
   }
   func format(syntax: PrecedenceGroupAssociativitySyntax) -> PrecedenceGroupAssociativitySyntax {
+    var result = syntax
+    let leadingTrivia = result.leadingTrivia ?? []
+    if !leadingTrivia.isEmpty {
+      result = result.withLeadingTrivia(leadingTrivia.addingSpacingAfterNewlinesIfNeeded())
+    }
+    return result
+  }
+  func format(syntax: MacroExpansionDeclSyntax) -> MacroExpansionDeclSyntax {
     var result = syntax
     let leadingTrivia = result.leadingTrivia ?? []
     if !leadingTrivia.isEmpty {

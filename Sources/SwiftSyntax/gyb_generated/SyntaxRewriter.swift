@@ -639,6 +639,13 @@ open class SyntaxRewriter {
     return ExprSyntax(visitChildren(node))
   }
 
+  /// Visit a `MacroExpansionExprSyntax`.
+  ///   - Parameter node: the node that is being visited
+  ///   - Returns: the rewritten node
+  open func visit(_ node: MacroExpansionExprSyntax) -> ExprSyntax {
+    return ExprSyntax(visitChildren(node))
+  }
+
   /// Visit a `PostfixIfConfigExprSyntax`.
   ///   - Parameter node: the node that is being visited
   ///   - Returns: the rewritten node
@@ -1085,6 +1092,13 @@ open class SyntaxRewriter {
   ///   - Returns: the rewritten node
   open func visit(_ node: PrecedenceGroupAssociativitySyntax) -> Syntax {
     return Syntax(visitChildren(node))
+  }
+
+  /// Visit a `MacroExpansionDeclSyntax`.
+  ///   - Parameter node: the node that is being visited
+  ///   - Returns: the rewritten node
+  open func visit(_ node: MacroExpansionDeclSyntax) -> DeclSyntax {
+    return DeclSyntax(visitChildren(node))
   }
 
   /// Visit a `TokenListSyntax`.
@@ -2885,6 +2899,16 @@ open class SyntaxRewriter {
   }
 
   /// Implementation detail of visit(_:). Do not call directly.
+  private func visitImplMacroExpansionExprSyntax(_ data: SyntaxData) -> Syntax {
+      let node = MacroExpansionExprSyntax(data)
+      // Accessing _syntaxNode directly is faster than calling Syntax(node)
+      visitPre(node._syntaxNode)
+      defer { visitPost(node._syntaxNode) }
+      if let newNode = visitAny(node._syntaxNode) { return newNode }
+      return Syntax(visit(node))
+  }
+
+  /// Implementation detail of visit(_:). Do not call directly.
   private func visitImplPostfixIfConfigExprSyntax(_ data: SyntaxData) -> Syntax {
       let node = PostfixIfConfigExprSyntax(data)
       // Accessing _syntaxNode directly is faster than calling Syntax(node)
@@ -3522,6 +3546,16 @@ open class SyntaxRewriter {
       defer { visitPost(node._syntaxNode) }
       if let newNode = visitAny(node._syntaxNode) { return newNode }
       return visit(node)
+  }
+
+  /// Implementation detail of visit(_:). Do not call directly.
+  private func visitImplMacroExpansionDeclSyntax(_ data: SyntaxData) -> Syntax {
+      let node = MacroExpansionDeclSyntax(data)
+      // Accessing _syntaxNode directly is faster than calling Syntax(node)
+      visitPre(node._syntaxNode)
+      defer { visitPost(node._syntaxNode) }
+      if let newNode = visitAny(node._syntaxNode) { return newNode }
+      return Syntax(visit(node))
   }
 
   /// Implementation detail of visit(_:). Do not call directly.
@@ -4932,6 +4966,8 @@ open class SyntaxRewriter {
       return visitImplObjcKeyPathExprSyntax
     case .objcSelectorExpr:
       return visitImplObjcSelectorExprSyntax
+    case .macroExpansionExpr:
+      return visitImplMacroExpansionExprSyntax
     case .postfixIfConfigExpr:
       return visitImplPostfixIfConfigExprSyntax
     case .editorPlaceholderExpr:
@@ -5060,6 +5096,8 @@ open class SyntaxRewriter {
       return visitImplPrecedenceGroupAssignmentSyntax
     case .precedenceGroupAssociativity:
       return visitImplPrecedenceGroupAssociativitySyntax
+    case .macroExpansionDecl:
+      return visitImplMacroExpansionDeclSyntax
     case .tokenList:
       return visitImplTokenListSyntax
     case .nonEmptyTokenList:
@@ -5487,6 +5525,8 @@ open class SyntaxRewriter {
       return visitImplObjcKeyPathExprSyntax(data)
     case .objcSelectorExpr:
       return visitImplObjcSelectorExprSyntax(data)
+    case .macroExpansionExpr:
+      return visitImplMacroExpansionExprSyntax(data)
     case .postfixIfConfigExpr:
       return visitImplPostfixIfConfigExprSyntax(data)
     case .editorPlaceholderExpr:
@@ -5615,6 +5655,8 @@ open class SyntaxRewriter {
       return visitImplPrecedenceGroupAssignmentSyntax(data)
     case .precedenceGroupAssociativity:
       return visitImplPrecedenceGroupAssociativitySyntax(data)
+    case .macroExpansionDecl:
+      return visitImplMacroExpansionDeclSyntax(data)
     case .tokenList:
       return visitImplTokenListSyntax(data)
     case .nonEmptyTokenList:

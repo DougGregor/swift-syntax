@@ -720,6 +720,14 @@ public extension ExpressibleAsObjcSelectorExpr {
     return createObjcSelectorExpr()
   }
 }
+public protocol ExpressibleAsMacroExpansionExpr: ExpressibleAsExprBuildable {
+  func createMacroExpansionExpr() -> MacroExpansionExpr
+}
+public extension ExpressibleAsMacroExpansionExpr {
+  func createExprBuildable() -> ExprBuildable {
+    return createMacroExpansionExpr()
+  }
+}
 public protocol ExpressibleAsPostfixIfConfigExpr: ExpressibleAsExprBuildable {
   func createPostfixIfConfigExpr() -> PostfixIfConfigExpr
 }
@@ -1226,6 +1234,14 @@ public protocol ExpressibleAsPrecedenceGroupAssociativity: ExpressibleAsSyntaxBu
 public extension ExpressibleAsPrecedenceGroupAssociativity {
   func createSyntaxBuildable() -> SyntaxBuildable {
     return createPrecedenceGroupAssociativity()
+  }
+}
+public protocol ExpressibleAsMacroExpansionDecl: ExpressibleAsDeclBuildable {
+  func createMacroExpansionDecl() -> MacroExpansionDecl
+}
+public extension ExpressibleAsMacroExpansionDecl {
+  func createDeclBuildable() -> DeclBuildable {
+    return createMacroExpansionDecl()
   }
 }
 public protocol ExpressibleAsTokenList {
