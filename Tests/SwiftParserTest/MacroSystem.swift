@@ -1,4 +1,5 @@
 @_spi(RawSyntax) import SwiftSyntax
+import SwiftOperators
 @_spi(RawSyntax) import SwiftParser
 import XCTest
 import Foundation
@@ -29,7 +30,9 @@ struct MacroSystem {
   var macros: [String : Macro] = [:]
 
   func applyMacros(_ node: SourceFileSyntax) -> Syntax {
-    return Syntax(MacroApplication(macroSystem: self).visit(node))
+    let foldedSF = OperatorTable.standardOperators.foldAll(node) { error in }
+      .as(SourceFileSyntax.self)!
+    return Syntax(MacroApplication(macroSystem: self).visit(foldedSF))
   }
 }
 
@@ -104,17 +107,14 @@ struct AssertMacro: Macro {
 
     let arg = firstArg.expression
 
-    // Check for a sequence with a relational operator in it.
-    // FIXME: If we did this after operator precedence parsing, it would just
-    // be an infix binary expression we'd be looking at.
-    if let sequenceExpr = arg.as(SequenceExprSyntax.self),
-       sequenceExpr.elements.count == 3,
-       let operatorExpr = sequenceExpr.elements.dropFirst().first,
-       let operatorSyntax = operatorExpr.as(BinaryOperatorExprSyntax.self),
-       operatorSyntax.operatorToken.text.isRelationalOperator,
-       let lhs = sequenceExpr.elements.first,
-       let rhs = sequenceExpr.elements.dropFirst(2).first {
-      
+    // Check for an infix operator expression with a relational operator.
+    if let infixOperatorExpr = arg.as(InfixOperatorExprSyntax.self),
+       let operatorSyntax =
+         infixOperatorExpr.operatorOperand.as(BinaryOperatorExprSyntax.self),
+       operatorSyntax.operatorToken.text.isRelationalOperator {
+
+      let lhs = infixOperatorExpr.leftOperand
+      let rhs = infixOperatorExpr.rightOperand
       let syntax: ExprSyntax =
         """
         {
