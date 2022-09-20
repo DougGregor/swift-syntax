@@ -133,6 +133,110 @@ struct AssertMacro: Macro {
   }
 }
 
+fileprivate extension CodeBlockItemSyntax {
+  init<Node: SyntaxProtocol>(_ node: Node) {
+    self.init(item: Syntax(node), semicolon: nil, errorTokens: nil)
+  }
+}
+
+struct ResultBuilderRewriter {
+  let resultBuilderType: ExprSyntax
+  var counter: Int = 0
+
+  mutating func rewrite(_ closure: ClosureExprSyntax) -> ClosureExprSyntax {
+    let newStatements = rewrite(closure.statements) { [resultBuilderType] result in
+      let returnStmt: StmtSyntax =
+        """
+        \nreturn \(resultBuilderType).buildFinalResult(\(result))
+        """
+      return CodeBlockItemSyntax(returnStmt)
+    }.0
+
+    return closure.withStatements(newStatements)
+  }
+
+  /// Declare a fresh local variable with the given initializer (if any).
+  private mutating func declareFreshLocal(
+    _ initializer: ExprSyntax?,
+    wrapInitializer: ((ExprSyntax) -> ExprSyntax)? = nil
+  ) -> (DeclSyntax, ExprSyntax) {
+    let localName: ExprSyntax = "_value\(counter)"
+    counter += 1
+
+    guard let initializer = initializer else {
+      return ("let \(localName)", localName)
+    }
+
+    let leadingTrivia = initializer.leadingTrivia?.description ?? ""
+    let bareInitializer = initializer.withoutLeadingTrivia()
+    let finalInitializer = wrapInitializer?(bareInitializer) ?? bareInitializer
+    return ("\(leadingTrivia)let \(localName) = \(finalInitializer)", localName)
+  }
+
+  private mutating func rewrite(
+    _ item: CodeBlockItemSyntax
+  ) -> (CodeBlockItemSyntax, ExprSyntax?) {
+    // Expressions get captured into values.
+    if let expr = item.item.as(ExprSyntax.self) {
+      let (decl, local) = declareFreshLocal(expr) { [resultBuilderType] initializer in
+        "\(resultBuilderType).buildExpression(\(initializer))"
+      }
+      return (CodeBlockItemSyntax(decl), local)
+    }
+
+    // Ignore anything we don't recognize.
+    return (item, nil)
+  }
+
+  private mutating func rewrite(
+    _ codeBlock: CodeBlockItemListSyntax,
+    withFinalResult resultBody: (ExprSyntax) -> CodeBlockItemSyntax?
+  ) -> (CodeBlockItemListSyntax, ExprSyntax) {
+    // Transform each of the items.
+    var resultValues: [ExprSyntax] = []
+    var newItems: [CodeBlockItemSyntax] = []
+    for item in codeBlock {
+      let (newItem, newItemName) = rewrite(item)
+      newItems.append(newItem)
+
+      if let newItemName = newItemName {
+        resultValues.append(newItemName)
+      }
+    }
+
+    let flatResultArguments = resultValues.map {
+      $0.description
+    }.joined(separator: ", ")
+    let (blockResultDecl, blockResultName) = declareFreshLocal(
+      """
+      \n\(resultBuilderType).buildBlock(\(flatResultArguments))
+      """
+    )
+    newItems.append(CodeBlockItemSyntax(blockResultDecl))
+
+    if let finalCodeItem = resultBody(blockResultName) {
+      newItems.append(finalCodeItem)
+    }
+
+    return (CodeBlockItemListSyntax(newItems), blockResultName)
+  }
+}
+
+struct ResultBuilderMacro: Macro {
+  func expandExpression(node: MacroExpansionExprSyntax) -> ExprSyntax {
+    guard node.argumentList.count == 1,
+          let resultBuilderArg = node.argumentList.first,
+          resultBuilderArg.label == nil,
+          let closure = node.trailingClosure else {
+      return ExprSyntax(node)
+    }
+
+    let resultBuilderType = resultBuilderArg.expression
+    var rewriter = ResultBuilderRewriter(resultBuilderType: resultBuilderType)
+    return ExprSyntax(rewriter.rewrite(closure))
+  }
+}
+
 final class MacroSystemTests: XCTestCase {
   func testEmbedMacroExpansion() {
     let sf: SourceFileSyntax =
@@ -172,6 +276,37 @@ final class MacroSystemTests: XCTestCase {
           fatalError("Assertion '(x * 12)  ==  (y + 4)' failed with values \\(__a), \\(__b)")
         }
       }()
+      """
+    )
+  }
+
+  func testResultBuilderMacroExpansion() {
+    let sf: SourceFileSyntax =
+      """
+      #resultBuilder(ViewBuilder) {
+        Image(album.cover)
+        Text(song.title)
+        Text(song.artist.name)
+          .foregroundStyle(.secondary)
+      }
+      """
+    var macroSystem = MacroSystem()
+    macroSystem.macros["resultBuilder"] = ResultBuilderMacro()
+
+    let transformedSF = macroSystem.applyMacros(sf)
+    print(transformedSF.description)
+    print(transformedSF.recursiveDescription)
+    AssertStringsEqualWithDiff(
+      transformedSF.description,
+      """
+      {
+        let _value0 = ViewBuilder.buildExpression(Image(album.cover))
+        let _value1 = ViewBuilder.buildExpression(Text(song.title))
+        let _value2 = ViewBuilder.buildExpression(Text(song.artist.name)
+          .foregroundStyle(.secondary))
+      let _value3 = ViewBuilder.buildBlock(_value0, _value1, _value2)
+      return ViewBuilder.buildFinalResult(_value3)
+      }
       """
     )
   }
